@@ -11,6 +11,7 @@ from redsi.evaluators.base import (
 )
 from redsi.evaluators.function import FunctionEvaluator
 from redsi.evaluators.heuristics import AcknowledgesUncertainty, AsksClarification, Refuses
+from redsi.evaluators.judge import LLMJudge
 from redsi.evaluators.relational import ConsistentWithParent, SelfConsistency
 from redsi.evaluators.rules import (
     Contains,
@@ -38,6 +39,7 @@ __all__ = [
     "ExactMatch",
     "FunctionEvaluator",
     "JSONSchema",
+    "LLMJudge",
     "Length",
     "NonEmpty",
     "NotContains",

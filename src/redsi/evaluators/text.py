@@ -7,7 +7,52 @@ import re
 _NUMBER = re.compile(r"(?<![\w.])-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.])-?\d+(?:\.\d+)?")
 _WORD = re.compile(r"[a-z0-9]+")
 _STOP = frozenset(
-    ["a", "an", "the", "is", "are", "was", "were", "be", "been", "of", "to", "in", "on", "for", "and", "or", "but", "with", "as", "at", "by", "it", "this", "that", "these", "those", "i", "you", "he", "she", "we", "they", "your", "my", "our", "their", "its", "from", "not", "no", "yes", "do", "does", "did"]
+    [
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "of",
+        "to",
+        "in",
+        "on",
+        "for",
+        "and",
+        "or",
+        "but",
+        "with",
+        "as",
+        "at",
+        "by",
+        "it",
+        "this",
+        "that",
+        "these",
+        "those",
+        "i",
+        "you",
+        "he",
+        "she",
+        "we",
+        "they",
+        "your",
+        "my",
+        "our",
+        "their",
+        "its",
+        "from",
+        "not",
+        "no",
+        "yes",
+        "do",
+        "does",
+        "did",
+    ]
 )
 
 
