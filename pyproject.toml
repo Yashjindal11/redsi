@@ -74,6 +74,7 @@ ignore = [
     "S105",   # enum values like PASS are not passwords
     "S311",   # random is used for reproducible test generation, not cryptography
     "RUF012", # ClassVar annotations on pydantic models are noisy
+    "ASYNC109", # explicit timeout parameters are part of the public API
 ]
 
 [tool.ruff.lint.per-file-ignores]
