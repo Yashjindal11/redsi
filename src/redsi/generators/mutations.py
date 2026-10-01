@@ -20,9 +20,9 @@ import re
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from redsi.core.models import Document, EvaluatorSpec, Origin, Relation, TestCase
+from redsi.core.models import Document, Origin, Relation, TestCase
 from redsi.core.registry import Registry
-from redsi.evaluators.base import evaluators as evaluator_registry
+from redsi.evaluators.base import is_deterministic
 from redsi.evaluators.heuristics import AsksClarification
 from redsi.evaluators.judge import LLMJudge
 from redsi.evaluators.relational import ConsistentWithParent
@@ -34,13 +34,6 @@ if TYPE_CHECKING:
     from redsi.providers import ModelRoles
 
 _RELATIONAL = {"consistent_with_parent", "self_consistency"}
-
-
-def _is_deterministic(spec: EvaluatorSpec) -> bool:
-    try:
-        return bool(evaluator_registry.get(spec.type).deterministic)
-    except KeyError:
-        return False
 
 
 def derive(
@@ -67,7 +60,7 @@ def derive(
         specs: list[Any] = [e for e in seed.evaluators if e.type not in _RELATIONAL]
         # With a deterministic check the variant is verified directly; otherwise
         # fall back to the weaker metamorphic check against the seed's output.
-        if not any(_is_deterministic(e) for e in specs):
+        if not any(is_deterministic(e) for e in specs):
             specs.append(ConsistentWithParent())
         relation = Relation(case_id=seed.id)
         reference = seed.reference

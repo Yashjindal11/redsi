@@ -19,6 +19,7 @@ from redsi.core.severity import SeverityPolicy
 from redsi.evaluators.base import Embedder
 from redsi.observability.events import EventBus, EventSink, JsonlSink
 from redsi.providers import ModelProvider, ModelRoles
+from redsi.spec import Specification, SpecificationGenerator, unverifiable_requirements
 from redsi.store import RunStore
 from redsi.suites import resolve_suites
 from redsi.targets import Target, TargetAdapter
@@ -60,6 +61,8 @@ class RedSI:
         suites: Sequence[str] = (),
         *,
         tests: Iterable[TestCase] = (),
+        spec: Specification | str | Path | None = None,
+        spec_probes: int = 0,
         config: CampaignConfig | None = None,
         name: str | None = None,
         save: bool = True,
@@ -68,14 +71,29 @@ class RedSI:
         """Run a campaign.
 
         ``suites`` are suite names (or test-file paths); ``tests`` are extra
-        test cases. With neither, all built-in suites run. ``overrides`` set
-        :class:`CampaignConfig` fields, e.g. ``mode="quick"``.
+        test cases; ``spec`` is a :class:`Specification` (or YAML path) whose
+        seeds and probes are added, with ``spec_probes`` generated probes per
+        requirement when a generator model is set. With none of these, all
+        built-in suites run. ``overrides`` set :class:`CampaignConfig` fields,
+        e.g. ``mode="quick"``.
         """
         base = config or CampaignConfig()
         cfg = CampaignConfig.model_validate({**base.model_dump(), **overrides})
         if self.severity is not None:
             cfg.severity = self.severity
         cases = list(tests)
+        spec_obj = Specification.load(spec) if isinstance(spec, str | Path) else spec
+        spec_summary: dict[str, Any] | None = None
+        requirement_ids: list[str] | None = None
+        if spec_obj is not None:
+            cases += await SpecificationGenerator(spec_probes).generate(
+                spec_obj, self.models, seed=cfg.seed
+            )
+            requirement_ids = [r.id for r in spec_obj.requirements]
+            spec_summary = {
+                **spec_obj.summary(),
+                "unverifiable": unverifiable_requirements(spec_obj, bool(self.models.judges)),
+            }
         suite_names = list(suites) or cfg.suites or ([] if cases else ["all"])
         cfg.suites = suite_names
         cases = resolve_suites(suite_names) + cases
@@ -88,7 +106,9 @@ class RedSI:
             bus=self._bus(run_id),
             run_id=run_id,
         )
-        artifact = await runner.run(cases, name=name)
+        artifact = await runner.run(
+            cases, name=name, spec=spec_summary, requirement_ids=requirement_ids
+        )
         if save and self.store is not None:
             self.store.save(artifact)
         return artifact

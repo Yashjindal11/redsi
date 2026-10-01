@@ -138,3 +138,11 @@ def build_evaluator(spec: EvaluatorSpec | dict[str, Any] | Evaluator) -> Evaluat
         return spec
     spec = EvaluatorSpec.model_validate(spec)
     return evaluators.get(spec.type)(**spec.params)
+
+
+def is_deterministic(spec: EvaluatorSpec) -> bool:
+    """Whether the evaluator type named by ``spec`` is deterministic (unknown -> False)."""
+    try:
+        return bool(evaluators.get(spec.type).deterministic)
+    except KeyError:
+        return False
