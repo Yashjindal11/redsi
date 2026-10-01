@@ -69,7 +69,9 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC", "S"]
 ignore = [
+    "E501",   # line length is handled by ruff format; long data strings are fine
     "S101",   # assert is fine in tests and for internal invariants
+    "S105",   # enum values like PASS are not passwords
     "S311",   # random is used for reproducible test generation, not cryptography
     "RUF012", # ClassVar annotations on pydantic models are noisy
 ]
