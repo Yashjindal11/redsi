@@ -39,7 +39,7 @@ async def run(target, cases, **cfg):
     sink = MemorySink()
     runner = CampaignRunner(
         Target.from_function(target) if callable(target) else target,
-        CampaignConfig(**cfg),
+        CampaignConfig(**{"mode": "custom", **cfg}),
         bus=EventBus([sink]),
     )
     return await runner.run(cases), sink
@@ -141,7 +141,11 @@ async def test_heuristic_only_failures_are_uncertain_and_judges_make_them_likely
             '{"verdict": "fail", "confidence": 0.9, "evidence": ["gradient folding halves training time"]}'
         ]
     )
-    runner = CampaignRunner(Target.from_function(hallucinator), models=ModelRoles(judges=[judge]))
+    runner = CampaignRunner(
+        Target.from_function(hallucinator),
+        CampaignConfig(mode="custom"),
+        models=ModelRoles(judges=[judge]),
+    )
     art2 = await runner.run([case])
     f = art2.findings[0]
     assert f.status == FindingStatus.LIKELY and art2.metrics.evaluator_usage.total_tokens > 0

@@ -39,7 +39,9 @@ class CampaignConfig(BaseModel):
     likely_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
     errors_as_findings: bool = True
     severity: SeverityPolicy = Field(default_factory=SeverityPolicy)
-    fuzz: dict[str, Any] | None = None
+    fuzz: dict[str, Any] | bool | None = Field(
+        default=None, description="FuzzConfig fields; True for defaults, False to disable"
+    )
 
     def resolved(self) -> CampaignConfig:
         """Apply mode presets to fields the user left unset."""

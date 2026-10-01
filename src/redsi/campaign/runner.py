@@ -14,6 +14,7 @@ import fnmatch
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import Any
 
 from redsi.campaign.artifact import RunArtifact, compute_metrics, new_run_id
 from redsi.campaign.config import CampaignConfig
@@ -30,6 +31,7 @@ from redsi.coverage import compute_coverage
 from redsi.evaluators.aggregate import aggregate
 from redsi.evaluators.base import Embedder, EvalContext, build_evaluator
 from redsi.findings.builder import build_findings
+from redsi.fuzzing.fuzzer import FuzzConfig, Fuzzer, next_weights, strategy_stats
 from redsi.observability.events import NULL_BUS, EventBus, EventType
 from redsi.providers import ModelRoles
 from redsi.targets.base import TargetAdapter, invoke
@@ -141,10 +143,9 @@ class CampaignRunner:
             tests=len(selected),
             mode=cfg.mode.value,
         )
-        sem = asyncio.Semaphore(cfg.concurrency)
-        for wave in plan_waves(selected):
-            results = await asyncio.gather(*(self._run_case(c, sem) for c in wave))
-            records.extend(results)
+        executed = await self.execute(selected)
+        records.extend(executed)
+        fuzz_info = await self._fuzz(selected, executed, records)
 
         findings = build_findings(
             records,
@@ -175,6 +176,7 @@ class CampaignRunner:
             findings=findings,
             metrics=compute_metrics(records, findings, self.ctx.usage, duration),
             coverage=compute_coverage(records, requirement_ids),
+            fuzz=fuzz_info,
             stopped_reason=self._state.stopped,
         )
         self.bus.emit(
@@ -186,6 +188,57 @@ class CampaignRunner:
             stopped_reason=self._state.stopped,
         )
         return artifact
+
+    async def execute(self, cases: list[TestCase]) -> list[CaseRecord]:
+        """Run and evaluate ``cases`` (no selection, fuzzing or findings)."""
+        self.ctx.cases_by_id.update({c.id: c for c in cases})
+        sem = asyncio.Semaphore(self.config.concurrency)
+        records: list[CaseRecord] = []
+        for wave in plan_waves(cases):
+            records.extend(await asyncio.gather(*(self._run_case(c, sem) for c in wave)))
+        return records
+
+    async def _fuzz(
+        self, seeds: list[TestCase], seed_records: list[CaseRecord], records: list[CaseRecord]
+    ) -> dict[str, Any] | None:
+        raw = self.config.fuzz
+        if raw is None or raw is False:
+            return None
+        fuzz_cfg = FuzzConfig.model_validate(
+            {"seed": self.config.seed, **(raw if isinstance(raw, dict) else {})}
+        )
+        fuzzer = Fuzzer.from_config(fuzz_cfg, self.models)
+        runnable = {r.case.id for r in seed_records if not r.skipped_reason}
+        fuzz_seeds = [s for s in seeds if s.id in runnable]
+        seen = {r.case.id for r in records}
+        weights: dict[str, float] | None = None
+        rounds: list[dict[str, Any]] = []
+        for round_index in range(fuzz_cfg.rounds):
+            if self._state.stopped:
+                break
+            generated = await fuzzer.generate(fuzz_seeds, weights=weights, round_index=round_index)
+            variants = [v for v in generated if v.id not in seen]
+            if self.config.max_cases is not None:
+                used = sum(1 for r in records if not r.skipped_reason)
+                variants = variants[: max(0, self.config.max_cases - used)]
+            if not variants:
+                break
+            seen.update(v.id for v in variants)
+            self.bus.emit(
+                EventType.GENERATION_FINISHED,
+                generator="fuzzer",
+                round=round_index,
+                tests=len(variants),
+            )
+            records.extend(await self.execute(variants))
+            rounds.append({"round": round_index, "generated": len(variants), "weights": weights})
+            if fuzz_cfg.adaptive:
+                weights = next_weights(strategy_stats(records), fuzz_cfg.strategies)
+        return {
+            "config": fuzz_cfg.model_dump(mode="json"),
+            "rounds": rounds,
+            "strategies": strategy_stats(records),
+        }
 
     # ------------------------------------------------------------------ cases
 
