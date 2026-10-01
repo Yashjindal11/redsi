@@ -184,7 +184,8 @@ class TestCase(BaseModel):
     category: str
     expected_behavior: str | None = None
     reference: str | None = None
-    severity: Severity = Severity.MEDIUM
+    # None means "use the taxonomy default for this category".
+    severity: Severity | None = None
     tags: list[str] = Field(default_factory=list)
     evaluators: list[EvaluatorSpec] = Field(default_factory=list)
     origin: Origin | None = None
