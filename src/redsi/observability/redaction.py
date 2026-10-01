@@ -64,12 +64,19 @@ class Redactor:
 
 
 _default: Redactor | None = None
+_default_env: frozenset[tuple[str, str]] = frozenset()
+
+
+def _secret_env() -> frozenset[tuple[str, str]]:
+    return frozenset((k, v) for k, v in os.environ.items() if _SECRET_ENV_NAME.search(k))
 
 
 def default_redactor() -> Redactor:
-    global _default
-    if _default is None:
-        _default = Redactor()
+    """Shared redactor, rebuilt when secret-looking environment variables change."""
+    global _default, _default_env
+    env = _secret_env()
+    if _default is None or env != _default_env:
+        _default, _default_env = Redactor(), env
     return _default
 
 
