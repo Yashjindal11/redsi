@@ -15,6 +15,7 @@ from redsi.targets.base import (
 )
 from redsi.targets.function import FunctionTarget, IsolatedFunctionTarget, from_import
 from redsi.targets.http import HTTPTarget
+from redsi.targets.model import ModelTarget, build_model_target
 
 TargetBuilder = Callable[[TargetRef], TargetAdapter]
 
@@ -39,6 +40,8 @@ def _build_http(ref: TargetRef) -> TargetAdapter:
 
 target_kinds.register("import", _build_import)
 target_kinds.register("http", _build_http)
+for _kind in ("model", "openai", "anthropic", "ollama", "gemini", "huggingface"):
+    target_kinds.register(_kind, build_model_target)
 
 
 class Target:
@@ -65,6 +68,27 @@ class Target:
         return HTTPTarget(url, **kwargs)
 
     @staticmethod
+    def from_openai(
+        model: str,
+        *,
+        base_url: str | None = None,
+        api_key_env: str | None = "OPENAI_API_KEY",
+        system: str | None = None,
+        temperature: float | None = 0.0,
+        max_tokens: int | None = None,
+    ) -> TargetAdapter:
+        """A chat model behind any OpenAI-compatible endpoint."""
+        provider: dict[str, Any] = {"type": "openai", "model": model, "api_key_env": api_key_env}
+        if base_url:
+            provider["base_url"] = base_url
+        return ModelTarget(provider, system=system, temperature=temperature, max_tokens=max_tokens)
+
+    @staticmethod
+    def from_model(provider: Any, **kwargs: Any) -> TargetAdapter:
+        """A chat model from a provider instance, config dict or ``"type:model"``."""
+        return ModelTarget(provider, **kwargs)
+
+    @staticmethod
     def from_ref(ref: TargetRef | dict[str, Any]) -> TargetAdapter:
         ref = TargetRef.model_validate(ref)
         if not ref.reproducible:
@@ -79,13 +103,13 @@ class Target:
         """Parse a CLI-style target string.
 
         * ``https://host/path`` - HTTP endpoint
-        * ``openai:<model>`` - OpenAI-compatible chat model
+        * ``openai:<model>``, ``ollama:<model>``, ... - chat model
         * ``path/to/file.py[:attr]`` or ``pkg.module:attr`` - Python callable
         """
         if spec.startswith(("http://", "https://")):
             return HTTPTarget(spec, **kwargs)
         scheme, sep, rest = spec.partition(":")
-        if sep and scheme in target_kinds and scheme not in ("import", "http"):
+        if sep and scheme in target_kinds and scheme not in ("import", "http", "model"):
             return target_kinds.get(scheme)(
                 TargetRef(kind=scheme, name=rest, params={"model": rest, **kwargs})
             )
@@ -97,6 +121,7 @@ __all__ = [
     "FunctionTarget",
     "HTTPTarget",
     "IsolatedFunctionTarget",
+    "ModelTarget",
     "Target",
     "TargetAdapter",
     "TargetRef",

@@ -37,7 +37,8 @@ flowchart TD
 Dependency rules (enforced by review, and by keeping imports one-directional):
 
 1. `redsi.core` depends on nothing inside RedSI except itself.
-2. Targets, providers, evaluators and generators depend on `core` only.
+2. Providers depend on `core` only. Targets, evaluators and generators depend
+   on `core` and, where they wrap a model, on the abstract provider interface.
 3. `campaign` composes the above; it never imports a concrete provider or target.
 4. `cli` and `server` consume the public SDK and the run store. The engine
    never imports them.
