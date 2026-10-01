@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# RedSI artifacts (runs, findings, cache) are per-user
+.redsi/
+redsi-runs/
+*.redsi.json
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+*.sqlite
+*.db
+
+# Node / web
+node_modules/
+web/frontend/dist/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
