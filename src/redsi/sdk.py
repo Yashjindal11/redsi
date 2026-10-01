@@ -19,6 +19,7 @@ from redsi.core.severity import SeverityPolicy
 from redsi.evaluators.base import Embedder
 from redsi.observability.events import EventBus, EventSink, JsonlSink
 from redsi.providers import ModelProvider, ModelRoles
+from redsi.reproduce import ReproductionResult, reproduce
 from redsi.spec import Specification, SpecificationGenerator, unverifiable_requirements
 from redsi.store import RunStore
 from redsi.suites import resolve_suites
@@ -113,8 +114,26 @@ class RedSI:
             self.store.save(artifact)
         return artifact
 
-    def run_sync(self, **kwargs: Any) -> RunArtifact:
-        return asyncio.run(self.run(**kwargs))
+    def run_sync(self, *args: Any, **kwargs: Any) -> RunArtifact:
+        return asyncio.run(self.run(*args, **kwargs))
+
+    async def reproduce(
+        self, finding_id: str, *, run: str = "latest", attempts: int = 3
+    ) -> ReproductionResult:
+        """Re-run a stored finding against this instance's target and save the result."""
+        if self.store is None:
+            raise RuntimeError("reproduce needs a run store")
+        artifact = self.store.load(run)
+        result = await reproduce(
+            artifact,
+            finding_id,
+            target=self.target,
+            attempts=attempts,
+            models=self.models,
+            embedder=self.embedder,
+        )
+        self.store.update(artifact)
+        return result
 
     async def aclose(self) -> None:
         await self.target.aclose()
