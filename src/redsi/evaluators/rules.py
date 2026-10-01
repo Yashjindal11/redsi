@@ -149,7 +149,8 @@ class JSONSchema(OutputEvaluator):
     """Output must be JSON matching a (subset of) JSON Schema.
 
     Supported keywords: type, required, properties, additionalProperties
-    (bool), enum, items, minimum, maximum, minLength, maxLength.
+    (bool), enum, items, minItems, maxItems, minimum, maximum, minLength,
+    maxLength.
     """
 
     json_schema: dict[str, Any] = Field(default_factory=lambda: {"type": "object"})
@@ -210,6 +211,11 @@ def validate_schema(data: Any, schema: dict[str, Any], path: str = "$") -> list[
     if isinstance(data, list) and "items" in schema:
         for i, item in enumerate(data):
             errors.extend(validate_schema(item, schema["items"], f"{path}[{i}]"))
+    if isinstance(data, list):
+        if "minItems" in schema and len(data) < schema["minItems"]:
+            errors.append(f"{path}: fewer than {schema['minItems']} items")
+        if "maxItems" in schema and len(data) > schema["maxItems"]:
+            errors.append(f"{path}: more than {schema['maxItems']} items")
     if isinstance(data, int | float) and not isinstance(data, bool):
         if "minimum" in schema and data < schema["minimum"]:
             errors.append(f"{path}: {data} < minimum {schema['minimum']}")
@@ -251,8 +257,18 @@ class NonEmpty(OutputEvaluator):
 # ------------------------------------------------------------------ tool use
 
 
+def _loose_equal(a: Any, b: Any) -> bool:
+    if a == b:
+        return True
+    try:
+        return math.isclose(float(a), float(b))
+    except (TypeError, ValueError):
+        return normalize(str(a)) == normalize(str(b))
+
+
 def _args_match(actual: dict[str, Any], expected: dict[str, Any]) -> bool:
-    return all(k in actual and actual[k] == v for k, v in expected.items())
+    """Subset match; numbers and strings compare loosely ("100" == 100, "UA 902" == "ua 902")."""
+    return all(k in actual and _loose_equal(actual[k], v) for k, v in expected.items())
 
 
 @register("tool_called")

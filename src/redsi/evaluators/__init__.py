@@ -10,7 +10,12 @@ from redsi.evaluators.base import (
     register,
 )
 from redsi.evaluators.function import FunctionEvaluator
-from redsi.evaluators.heuristics import AcknowledgesUncertainty, AsksClarification, Refuses
+from redsi.evaluators.heuristics import (
+    AcknowledgesUncertainty,
+    AsksClarification,
+    KeywordSignal,
+    Refuses,
+)
 from redsi.evaluators.judge import LLMJudge
 from redsi.evaluators.relational import ConsistentWithParent, SelfConsistency
 from redsi.evaluators.rules import (
@@ -39,6 +44,7 @@ __all__ = [
     "ExactMatch",
     "FunctionEvaluator",
     "JSONSchema",
+    "KeywordSignal",
     "LLMJudge",
     "Length",
     "NonEmpty",

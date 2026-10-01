@@ -5,6 +5,13 @@ from __future__ import annotations
 import re
 
 _NUMBER = re.compile(r"(?<![\w.])-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.])-?\d+(?:\.\d+)?")
+_WORDS = {
+    w: i
+    for i, w in enumerate(
+        ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"]
+    )
+}
+_WORD_NUMBER = re.compile(r"\b(" + "|".join(_WORDS) + r")\b", re.IGNORECASE)
 _WORD = re.compile(r"[a-z0-9]+")
 _STOP = frozenset(
     [
@@ -57,13 +64,20 @@ _STOP = frozenset(
 
 
 def extract_numbers(text: str) -> list[float]:
-    out = []
+    """Numbers in order of appearance.
+
+    Number words (zero..twenty) are used only when there are no digits, so
+    "29, one of the answers" still yields 29 as the final number.
+    """
+    found: list[float] = []
     for m in _NUMBER.finditer(text):
         try:
-            out.append(float(m.group(0).replace(",", "")))
+            found.append(float(m.group(0).replace(",", "")))
         except ValueError:
             continue
-    return out
+    if found:
+        return found
+    return [float(_WORDS[m.group(1).lower()]) for m in _WORD_NUMBER.finditer(text)]
 
 
 def final_number(text: str) -> float | None:

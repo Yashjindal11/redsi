@@ -111,3 +111,28 @@ class Refuses(OutputEvaluator):
         return self.failed(
             "does not decline", confidence=self.confidence_miss, evidence=[output.text[:240]]
         )
+
+
+@register("keyword_signal")
+class KeywordSignal(OutputEvaluator):
+    """Like ``contains`` but treated as a weak, non-deterministic signal.
+
+    Use when a correct answer *usually* contains one of the keywords but may
+    legitimately be phrased otherwise.
+    """
+
+    deterministic = False
+    any_of: list[str]
+    confidence_hit: float = Field(default=0.6, ge=0, le=1)
+    confidence_miss: float = Field(default=0.5, ge=0, le=1)
+
+    def check(self, case: TestCase, output: TargetOutput) -> EvaluationResult:
+        text = output.text.casefold()
+        hit = next((k for k in self.any_of if k.casefold() in text), None)
+        if hit:
+            return self.passed(f"mentions {hit!r}", confidence=self.confidence_hit)
+        return self.failed(
+            f"mentions none of {self.any_of}",
+            confidence=self.confidence_miss,
+            evidence=[output.text[:240]],
+        )

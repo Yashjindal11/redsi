@@ -20,6 +20,7 @@ from redsi.evaluators.base import Embedder
 from redsi.observability.events import EventBus, EventSink, JsonlSink
 from redsi.providers import ModelProvider, ModelRoles
 from redsi.store import RunStore
+from redsi.suites import resolve_suites
 from redsi.targets import Target, TargetAdapter
 
 
@@ -56,6 +57,7 @@ class RedSI:
 
     async def run(
         self,
+        suites: Sequence[str] = (),
         *,
         tests: Iterable[TestCase] = (),
         config: CampaignConfig | None = None,
@@ -63,11 +65,20 @@ class RedSI:
         save: bool = True,
         **overrides: Any,
     ) -> RunArtifact:
-        """Run a campaign over ``tests``. ``overrides`` set CampaignConfig fields."""
-        cfg = (config or CampaignConfig()).model_copy(update=overrides)
+        """Run a campaign.
+
+        ``suites`` are suite names (or test-file paths); ``tests`` are extra
+        test cases. With neither, all built-in suites run. ``overrides`` set
+        :class:`CampaignConfig` fields, e.g. ``mode="quick"``.
+        """
+        base = config or CampaignConfig()
+        cfg = CampaignConfig.model_validate({**base.model_dump(), **overrides})
         if self.severity is not None:
             cfg.severity = self.severity
         cases = list(tests)
+        suite_names = list(suites) or cfg.suites or ([] if cases else ["all"])
+        cfg.suites = suite_names
+        cases = resolve_suites(suite_names) + cases
         run_id = new_run_id()
         runner = CampaignRunner(
             self.target,
