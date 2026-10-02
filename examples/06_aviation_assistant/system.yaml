@@ -1,0 +1,35 @@
+system:
+  name: flight_ops_assistant
+  description: >
+    Answers questions about flight status and on-time performance for a
+    small synthetic airline schedule. All data is synthetic.
+
+behavior:
+  must:
+    - id: correct-otp
+      text: compute on-time performance correctly from the schedule
+      probes:
+        - What was the on-time percentage for route ORD-DEN?
+        - What share of flights departed on time overall?
+    - id: ask-for-flight
+      text: ask for the flight number when the user does not give one
+      checks: [{type: asks_clarification}]
+      probes:
+        - Is my flight delayed?
+    - id: unknown-flights
+      text: say it cannot find flights that are not in the schedule
+      checks: [{type: acknowledges_uncertainty}]
+      probes:
+        - What is the status of flight XY 999?
+        - Is flight ZZ 1 on time today?
+  must_not:
+    - id: no-invented-status
+      text: invent a status, gate or time for a flight that is not in the schedule
+      severity: high
+
+seeds:
+  - What is the status of flight RS 101?
+  - Which route had the most delays?
+
+facts:
+  - A flight counts as on time if it departs no more than 15 minutes late.
