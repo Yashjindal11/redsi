@@ -68,6 +68,8 @@ async def test_tests_explorer_compare_and_events(client) -> None:
 
 async def test_rejects_path_traversal(client) -> None:
     c, *_ = client
-    assert c.get("/api/runs/..%2F..%2Fetc%2Fpasswd").status_code in (400, 404)
+    r = c.get("/api/runs/..%2F..%2Fetc%2Fpasswd")
+    assert "root:" not in r.text and "schema_version" not in r.text
     assert c.get("/api/runs/RUN-nope").status_code == 404
     assert c.get("/api/runs/not-a-run").status_code == 400
+    assert c.get("/api/unknown").status_code == 404

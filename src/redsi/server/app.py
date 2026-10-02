@@ -229,6 +229,8 @@ def create_app(store_dir: str | Path = ".redsi") -> FastAPI:
 
         @app.get("/{path:path}", include_in_schema=False)
         def spa(path: str) -> FileResponse:
+            if path.startswith("api/"):
+                raise HTTPException(404, "not found")
             return FileResponse(STATIC_DIR / "index.html")
     else:
 
