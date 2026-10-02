@@ -60,9 +60,12 @@ path = "src/redsi/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/redsi"]
+# Built dashboard assets are git-ignored but must ship in wheels when present.
+artifacts = ["src/redsi/server/static/**"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/redsi", "tests", "docs", "README.md", "LICENSE", "NOTICE", "CHANGELOG.md"]
+artifacts = ["src/redsi/server/static/**"]
 
 [tool.ruff]
 line-length = 100

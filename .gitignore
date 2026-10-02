@@ -28,7 +28,7 @@ redsi-runs/
 
 # Node / web
 node_modules/
-web/frontend/dist/
+src/redsi/server/static/
 
 # OS / editors
 .DS_Store
