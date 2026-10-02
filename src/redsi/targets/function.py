@@ -101,7 +101,7 @@ def _inspect_signature(fn: Callable[..., Any]) -> tuple[str, tuple[str, ...]]:
 def _import_path_of(fn: Callable[..., Any]) -> str | None:
     module = getattr(fn, "__module__", None)
     qualname = getattr(fn, "__qualname__", None)
-    if not module or not qualname or "<" in qualname:
+    if not module or not qualname or "<" in qualname or module.startswith("<"):
         return None
     if module == "__main__":
         main_file = getattr(sys.modules.get("__main__"), "__file__", None)

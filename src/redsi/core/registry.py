@@ -18,6 +18,13 @@ T = TypeVar("T")
 log = logging.getLogger("redsi")
 
 
+def _same_origin(a: object, b: object) -> bool:
+    """True when ``b`` is the same definition as ``a`` from a re-imported module."""
+    qa, qb = getattr(a, "__qualname__", None), getattr(b, "__qualname__", None)
+    ma, mb = getattr(a, "__module__", None), getattr(b, "__module__", None)
+    return qa is not None and qa == qb and ma == mb
+
+
 class Registry(Generic[T]):
     def __init__(self, kind: str, entry_point_group: str | None = None) -> None:
         self.kind = kind
@@ -26,7 +33,8 @@ class Registry(Generic[T]):
         self._loaded_entry_points = False
 
     def register(self, name: str, item: T, *, replace: bool = False) -> T:
-        if name in self._items and not replace:
+        existing = self._items.get(name)
+        if existing is not None and not replace and not _same_origin(existing, item):
             raise ValueError(f"{self.kind} {name!r} is already registered")
         self._items[name] = item
         return item

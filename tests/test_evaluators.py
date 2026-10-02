@@ -176,6 +176,38 @@ async def test_function_evaluator_and_spec_roundtrip() -> None:
     assert (await ev(score, "x")).verdict == Verdict.FAIL
 
 
+async def test_closure_evaluators_survive_spec_roundtrip_in_process() -> None:
+    def make(word: str):
+        def check(i: str, o: str) -> bool:
+            return word not in o
+
+        check.__name__ = f"no_{word}"
+        return check
+
+    a, b = FunctionEvaluator.wrap(make("foo")), FunctionEvaluator.wrap(make("bar"))
+    assert a.to_spec() != b.to_spec()
+    assert (await ev(build_evaluator(a.to_spec()), "has foo")).verdict == Verdict.FAIL
+    assert (await ev(build_evaluator(b.to_spec()), "has foo")).verdict == Verdict.PASS
+
+
+def test_registry_allows_reimported_definitions_but_not_conflicts() -> None:
+    from redsi.core.registry import Registry
+
+    reg: Registry[type] = Registry("thing")
+
+    class A: ...
+
+    reg.register("a", A)
+    A2 = type("A", (), {"__module__": A.__module__, "__qualname__": A.__qualname__})
+    reg.register("a", A2)  # same module + qualname: a reload, allowed
+    assert reg.get("a") is A2
+
+    class B: ...
+
+    with pytest.raises(ValueError):
+        reg.register("a", B)
+
+
 def test_evaluator_spec_roundtrip() -> None:
     spec = Contains(all_of=["a"]).to_spec()
     assert spec.type == "contains" and spec.params == {"all_of": ["a"]}

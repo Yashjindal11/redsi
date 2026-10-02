@@ -21,11 +21,16 @@ from pydantic import PrivateAttr
 from redsi.core.models import EvaluationResult, TargetOutput, TestCase, Verdict
 from redsi.evaluators.base import EvalContext, Evaluator, register
 
+# Callables wrapped in this process, so specs can find them again even when
+# they are not importable (closures, lambdas). Not reproducible across processes.
+_LOCAL: dict[str, Callable[..., Any]] = {}
+
 
 @register("function")
 class FunctionEvaluator(Evaluator):
     path: str | None = None
     name: str | None = None
+    local: str | None = None
     threshold: float = 0.5
     is_deterministic: bool = True
 
@@ -35,12 +40,24 @@ class FunctionEvaluator(Evaluator):
     def wrap(
         cls, fn: Callable[..., Any], *, threshold: float = 0.5, deterministic: bool = True
     ) -> FunctionEvaluator:
-        module = getattr(fn, "__module__", None)
-        qual = getattr(fn, "__qualname__", "")
-        path = f"{module}:{qual}" if module and module != "__main__" and "<" not in qual else None
+        from redsi.targets.function import _import_path_of
+
+        path = _import_path_of(fn)
+        local = None
+        if path is None:
+            # Stable across runs (keeps test ids stable); suffixed only on collision.
+            base = f"{getattr(fn, '__module__', '')}:{getattr(fn, '__qualname__', '')}:{getattr(fn, '__name__', '')}"
+            local, i = base, 1
+            while local in _LOCAL and _LOCAL[local] is not fn:
+                i += 1
+                local = f"{base}#{i}"
+            _LOCAL[local] = fn
+        else:
+            _LOCAL[path] = fn
         ev = cls(
             path=path,
             name=getattr(fn, "__name__", "function"),
+            local=local,
             threshold=threshold,
             is_deterministic=deterministic,
         )
@@ -49,11 +66,18 @@ class FunctionEvaluator(Evaluator):
 
     def _resolve(self) -> Callable[..., Any]:
         if self._fn is None:
-            if not self.path:
-                raise RuntimeError("function evaluator has no callable and no import path")
-            from redsi.targets.function import resolve_import
+            key = self.local or self.path
+            if key and key in _LOCAL:
+                self._fn = _LOCAL[key]
+            elif self.path:
+                from redsi.targets.function import resolve_import
 
-            self._fn = resolve_import(self.path)
+                self._fn = resolve_import(self.path)
+            else:
+                raise RuntimeError(
+                    f"function evaluator {self.name!r} is not importable and was defined in "
+                    "another process; define it at module level to make it reproducible"
+                )
         return self._fn
 
     def label(self) -> str:
