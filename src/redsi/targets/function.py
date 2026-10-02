@@ -117,17 +117,16 @@ def resolve_import(path: str) -> Any:
         if not file.is_file():
             raise FileNotFoundError(f"target file not found: {file}")
         mod_name = f"redsi_user_{file.stem}"
-        module = sys.modules.get(mod_name)
-        if module is None or getattr(module, "__file__", None) != str(file):
-            spec = importlib.util.spec_from_file_location(mod_name, file)
-            if spec is None or spec.loader is None:
-                raise ImportError(f"cannot import {file}")
-            module = importlib.util.module_from_spec(spec)
-            # Let the user's file import its siblings.
-            if str(file.parent) not in sys.path:
-                sys.path.insert(0, str(file.parent))
-            sys.modules[mod_name] = module
-            spec.loader.exec_module(module)
+        # Always load fresh: the file may have changed since the last load.
+        spec = importlib.util.spec_from_file_location(mod_name, file)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"cannot import {file}")
+        module = importlib.util.module_from_spec(spec)
+        # Let the user's file import its siblings.
+        if str(file.parent) not in sys.path:
+            sys.path.insert(0, str(file.parent))
+        sys.modules[mod_name] = module
+        spec.loader.exec_module(module)
     else:
         if str(Path.cwd()) not in sys.path:
             sys.path.insert(0, str(Path.cwd()))

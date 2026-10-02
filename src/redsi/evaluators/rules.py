@@ -134,13 +134,13 @@ class NumericAnswer(OutputEvaluator):
         )
         found = [c for c in candidates if c is not None]
         if not found:
-            return self.failed(f"no number in output; expected {expected:g}")
+            return self.failed(f"no number in output; expected {expected:.10g}")
         if any(
             math.isclose(c, expected, abs_tol=self.abs_tol, rel_tol=self.rel_tol) for c in found
         ):
-            return self.passed(f"found {expected:g}")
+            return self.passed(f"found {expected:.10g}")
         return self.failed(
-            f"expected {expected:g}, found {found[-1]:g}", evidence=[output.text[-200:]]
+            f"expected {expected:.10g}, found {found[-1]:.10g}", evidence=[output.text[-200:]]
         )
 
 

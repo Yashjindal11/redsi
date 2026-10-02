@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from redsi.core.models import Origin, TargetInput, TestCase
-from redsi.core.severity import Severity
 from redsi.evaluators.base import is_deterministic
 from redsi.evaluators.judge import LLMJudge
 from redsi.generators.llm import GenerationRequest, LLMGenerator
@@ -34,20 +33,27 @@ def _input(spec: Specification, prompt: str) -> TargetInput:
     return TargetInput(prompt=prompt, system=spec.system_prompt, context=list(spec.context))
 
 
-def _severity(reqs: list[Requirement]) -> Severity | None:
-    given = [r.severity for r in reqs if r.severity is not None]
-    return max(given) if given else None
+def requirement_evaluators(
+    spec: Specification, reqs: list[Requirement], *, universal_only: bool = False
+) -> list[Any]:
+    """Explicit checks plus one judge rubric covering ``reqs``.
 
-
-def requirement_evaluators(spec: Specification, reqs: list[Requirement]) -> list[Any]:
-    checks: list[Any] = [c for r in reqs for c in r.checks]
+    With ``universal_only``, only ``must_not`` checks are included: prohibitions
+    hold for every input, while ``must`` obligations are often conditional
+    ("ask for missing information *when necessary*") and are checked
+    mechanically only on their own probes.
+    """
+    checks: list[Any] = [
+        c for r in reqs if not universal_only or r.kind == "must_not" for c in r.checks
+    ]
     return [*checks, LLMJudge(rubric=_rubric(spec, reqs))]
 
 
 class SpecificationGenerator:
     """Turn a :class:`Specification` into tests.
 
-    * every seed becomes a test checked against **all** requirements;
+    * every seed becomes a test checked against **all** requirements (the
+      judge sees all of them; mechanical checks of prohibitions apply);
     * every explicit probe becomes a test checked against **its** requirement;
     * with a generator model, ``generated_per_requirement`` probes are written
       per requirement by :class:`~redsi.generators.llm.LLMGenerator`.
@@ -78,8 +84,10 @@ class SpecificationGenerator:
                     reference=s.reference,
                     expected_behavior=s.expected_behavior
                     or "Satisfies every requirement in the specification.",
-                    severity=_severity(reqs),
-                    evaluators=[*s.checks, *requirement_evaluators(spec, reqs)],
+                    evaluators=[
+                        *s.checks,
+                        *requirement_evaluators(spec, reqs, universal_only=True),
+                    ],
                     requirements=all_ids,
                     origin=origin,
                     tags=["spec", "seed", spec.system.name],

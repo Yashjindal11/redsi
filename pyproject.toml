@@ -47,6 +47,9 @@ dev = [
     "uvicorn>=0.29",
 ]
 
+[project.scripts]
+redsi = "redsi.cli.main:app"
+
 [project.urls]
 Homepage = "https://github.com/Yashjindal11/redsi"
 Documentation = "https://github.com/Yashjindal11/redsi/tree/main/docs"
