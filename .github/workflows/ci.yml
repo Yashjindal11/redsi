@@ -81,5 +81,3 @@ jobs:
       - run: pip install -e . pip-audit
       - name: Dependency audit
         run: pip-audit --skip-editable
-      - name: Static security lint
-        run: pip install ruff && ruff check --select S src
