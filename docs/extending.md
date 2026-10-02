@@ -13,6 +13,7 @@ no_pii = "my_pkg.checks:NoPII"               #       redsi.suites, redsi.mutatio
 ```python
 from redsi import TargetAdapter, TargetInput, TargetOutput, ToolCall
 
+
 class MyAgent(TargetAdapter):
     name = "my-agent"
     # Declare what you actually use. Tests needing more are skipped and reported.
@@ -23,10 +24,12 @@ class MyAgent(TargetAdapter):
         result = await my_client.chat(input.prompt, system=input.system, docs=input.context)
         return TargetOutput(
             text=result.answer,
-            tool_calls=[ToolCall(name=c.name, arguments=c.args, error=c.error) for c in result.calls],
-            retrieved=[...],          # enables retrieval_failure hypotheses
-            trace=result.steps,       # shown in the dashboard
-            usage=...,                # token/cost tracking
+            tool_calls=[
+                ToolCall(name=c.name, arguments=c.args, error=c.error) for c in result.calls
+            ],
+            retrieved=[...],  # enables retrieval_failure hypotheses
+            trace=result.steps,  # shown in the dashboard
+            usage=...,  # token/cost tracking
         )
 ```
 
@@ -36,14 +39,20 @@ For CLI use, export it from a file as `redsi_target = MyAgent()` and run
 Plain functions are usually enough:
 
 ```python
-def answer(prompt: str) -> str: ...                       # text only
-def rag(prompt: str, context: list) -> dict: ...          # + context capability
-def full(input: TargetInput) -> TargetOutput: ...         # everything
-Target.from_function(answer)                              # in-process
-Target.from_import("my_agent.py:answer", isolate=True)    # killable subprocess
-Target.from_http("https://...", body={"q": "{{prompt}}"}, response_path="data.answer",
-                 headers={"Authorization": "Bearer ${MY_API_KEY}"})
-Target.from_openai("gpt-4o-mini", system="...")           # bare model
+def answer(prompt: str) -> str: ...  # text only
+def rag(prompt: str, context: list) -> dict: ...  # + context capability
+def full(input: TargetInput) -> TargetOutput: ...  # everything
+
+
+Target.from_function(answer)  # in-process
+Target.from_import("my_agent.py:answer", isolate=True)  # killable subprocess
+Target.from_http(
+    "https://...",
+    body={"q": "{{prompt}}"},
+    response_path="data.answer",
+    headers={"Authorization": "Bearer ${MY_API_KEY}"},
+)
+Target.from_openai("gpt-4o-mini", system="...")  # bare model
 ```
 
 ## Custom evaluator
@@ -51,9 +60,10 @@ Target.from_openai("gpt-4o-mini", system="...")           # bare model
 ```python
 from redsi.evaluators import OutputEvaluator, register
 
+
 @register("max_sentences")
 class MaxSentences(OutputEvaluator):
-    limit: int = 3                       # pydantic fields = serialisable params
+    limit: int = 3  # pydantic fields = serialisable params
 
     def check(self, case, output):
         n = output.text.count(".")
@@ -75,13 +85,14 @@ Always add a false-positive test next to the true-positive one.
 ```python
 from redsi.generators import Mutation, derive, register_mutation
 
+
 @register_mutation
 class Politeness(Mutation):
     name = "politeness"
 
     async def mutate(self, seed, rng, models=None):
         prompt = f"{rng.choice(['Pretty please', 'Kindly'])}, {seed.input.prompt}"
-        return derive(seed, self.name, prompt=prompt)   # keep_answer=True by default
+        return derive(seed, self.name, prompt=prompt)  # keep_answer=True by default
 ```
 
 `derive` copies lineage, keeps the seed's deterministic checks, and adds a
@@ -95,10 +106,17 @@ deterministic given `rng`.
 from redsi.suites import suite
 from redsi import TestCase
 
+
 @suite("billing", "Billing assistant regressions")
 def billing() -> list[TestCase]:
-    return [TestCase(input="...", category="factuality.calculation", reference="42",
-                     evaluators=[{"type": "numeric_answer"}])]
+    return [
+        TestCase(
+            input="...",
+            category="factuality.calculation",
+            reference="42",
+            evaluators=[{"type": "numeric_answer"}],
+        )
+    ]
 ```
 
 Or a file (`redsi test --tests billing.yaml`):
@@ -121,6 +139,13 @@ secrets from `describe()`.
 
 ```python
 from redsi.core import Category, Severity, register_category
-register_category(Category("domain.billing_error", "Wrong invoice amount.", Severity.HIGH,
-                           "Validate totals against the ledger."))
+
+register_category(
+    Category(
+        "domain.billing_error",
+        "Wrong invoice amount.",
+        Severity.HIGH,
+        "Validate totals against the ledger.",
+    )
+)
 ```

@@ -60,15 +60,22 @@ class LLMGenerator:
             while remaining > 0:
                 n = min(self.batch_size, remaining)
                 prompt = self._prompt(request, category, n)
-                resp = await provider.complete(
-                    ChatRequest.simple(
-                        prompt,
-                        system=GENERATOR_SYSTEM,
-                        temperature=self.temperature,
-                        seed=rng.randint(0, 2**31),
-                        json_mode=True,
+                try:
+                    resp = await provider.complete(
+                        ChatRequest.simple(
+                            prompt,
+                            system=GENERATOR_SYSTEM,
+                            temperature=self.temperature,
+                            seed=rng.randint(0, 2**31),
+                            json_mode=True,
+                        )
                     )
-                )
+                except Exception as exc:
+                    # A failing generator reduces what we test; it must not abort the campaign.
+                    bus.emit(
+                        EventType.ERROR, role="generator", category=category, error=str(exc)[:300]
+                    )
+                    break
                 bus.emit(
                     EventType.MODEL_CALL,
                     role="generator",

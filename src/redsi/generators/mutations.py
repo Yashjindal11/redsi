@@ -133,21 +133,21 @@ class Paraphrase(Mutation):
     ) -> TestCase | None:
         prompt = seed.input.prompt
         if models is not None and models.generator is not None and len(prompt) < 2000:
-            resp = await models.generator.complete(
-                ChatRequest.simple(
-                    "Paraphrase the following request. Keep every fact, number, constraint and "
-                    "instruction identical; change only the wording. Return JSON "
-                    '{"paraphrase": "..."}.\n\nREQUEST:\n' + prompt,
-                    temperature=0.0,
-                    seed=rng.randint(0, 2**31),
-                    json_mode=True,
-                )
-            )
             try:
+                resp = await models.generator.complete(
+                    ChatRequest.simple(
+                        "Paraphrase the following request. Keep every fact, number, constraint and "
+                        "instruction identical; change only the wording. Return JSON "
+                        '{"paraphrase": "..."}.\n\nREQUEST:\n' + prompt,
+                        temperature=0.0,
+                        seed=rng.randint(0, 2**31),
+                        json_mode=True,
+                    )
+                )
                 text = str(parse_json_object(resp.text)["paraphrase"]).strip()
                 if text and text != prompt:
                     return derive(seed, self.name, prompt=text, category="robustness.paraphrase")
-            except (ValueError, KeyError):
+            except Exception:  # noqa: S110 - model unavailable or malformed: use templates
                 pass
         first = (
             prompt[:1].lower() + prompt[1:]

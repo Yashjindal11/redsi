@@ -14,12 +14,11 @@ LLM judges are treated as fallible voters, not oracles:
 
 from __future__ import annotations
 
-import secrets
 from typing import Literal
 
 from pydantic import Field
 
-from redsi.core.models import EvaluationResult, TargetOutput, TestCase, Verdict
+from redsi.core.models import EvaluationResult, TargetOutput, TestCase, Verdict, stable_hash
 from redsi.evaluators.base import EvalContext, Evaluator, register
 from redsi.evaluators.text import normalize
 from redsi.observability.events import EventType
@@ -42,7 +41,9 @@ Quotes in "evidence" must be copied verbatim from the OUTPUT."""
 def build_judge_prompt(
     rubric: str, case: TestCase, output: TargetOutput, include_reference: bool
 ) -> str:
-    b = secrets.token_hex(4)
+    # Boundary derived from the content itself: deterministic (so judge calls are
+    # cacheable and reproducible) yet not something an output can predict.
+    b = stable_hash({"case": case.id, "output": output.text, "rubric": rubric}, 8)
     parts = [f"CRITERION:\n{rubric}"]
     if case.expected_behavior:
         parts.append(f"EXPECTED BEHAVIOUR:\n{case.expected_behavior}")

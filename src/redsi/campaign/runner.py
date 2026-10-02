@@ -32,7 +32,7 @@ from redsi.evaluators.aggregate import aggregate
 from redsi.evaluators.base import Embedder, EvalContext, build_evaluator
 from redsi.findings.builder import build_findings
 from redsi.fuzzing.fuzzer import FuzzConfig, Fuzzer, next_weights, strategy_stats
-from redsi.observability.events import NULL_BUS, EventBus, EventType
+from redsi.observability.events import EventBus, EventType
 from redsi.providers import ModelRoles
 from redsi.targets.base import TargetAdapter, invoke
 
@@ -113,7 +113,7 @@ class CampaignRunner:
         self.config = (config or CampaignConfig()).resolved()
         self.models = models
         self.run_id = run_id or new_run_id()
-        self.bus = bus or NULL_BUS
+        self.bus = bus or EventBus(run_id=self.run_id)
         if self.bus.run_id is None:
             self.bus.run_id = self.run_id
         self.ctx = EvalContext(models=models, embedder=embedder, bus=self.bus)
