@@ -17,6 +17,11 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build dashboard into the package
+        run: npm --prefix web/frontend ci && npm --prefix web/frontend run build
       - run: python -m build
       - name: Check version matches tag
         run: |
