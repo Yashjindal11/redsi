@@ -778,6 +778,52 @@ def serve(
     uvicorn.run(create_app(store), host=host, port=port, log_level="warning")
 
 
+@app.command()
+def benchmark(
+    repeats: Annotated[
+        int, typer.Option(min=1, max=50, help="Repeats per method (different seeds).")
+    ] = 5,
+    budget: Annotated[int, typer.Option(min=10, help="Test budget per method run.")] = 120,
+    method: Annotated[
+        list[str] | None, typer.Option("--method", help="Limit to these methods. Repeatable.")
+    ] = None,
+    judge: Annotated[
+        list[str] | None,
+        typer.Option("--judge", "-j", help="Judge model (enables llm_generation)."),
+    ] = None,
+    generator: Annotated[
+        str | None, typer.Option(help="Generator model (enables llm_generation).")
+    ] = None,
+    out: Annotated[
+        Path | None, typer.Option("--out", "-o", help="Write results (.json or .md).")
+    ] = None,
+    config: ConfigOpt = None,
+    as_json: JsonOpt = False,
+) -> None:
+    """Compare discovery methods on a synthetic target with planted faults."""
+    from redsi.benchmark import render_markdown, run_benchmark
+
+    models = _load_config(config).build_models(judge, generator) if (judge or generator) else None
+    result = asyncio.run(
+        run_benchmark(
+            repeats=repeats,
+            budget=budget,
+            methods=method,
+            models=models,
+            progress=None if as_json else (lambda m: ui.err.print(f"[dim]running {m}[/]")),
+        )
+    )
+    result["redsi_version"] = __version__
+    md = render_markdown(result)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, indent=1) if out.suffix == ".json" else md, "utf-8")
+    if as_json:
+        _emit_json(result)
+    else:
+        sys.stdout.write(md)
+
+
 @app.command(name="config")
 def config_cmd(
     action: Annotated[str, typer.Argument(help="show | validate")] = "show",

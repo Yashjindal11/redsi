@@ -28,7 +28,7 @@ class FuzzConfig(BaseModel):
     strategies: list[str] = Field(default_factory=lambda: list(DEFAULT_STRATEGIES))
     per_seed: int = Field(default=2, ge=1, le=20)
     depth: int = Field(default=1, ge=1, le=4)
-    rounds: int = Field(default=1, ge=1, le=10)
+    rounds: int = Field(default=1, ge=1, le=100)
     adaptive: bool = True
     seed: int = 0
 

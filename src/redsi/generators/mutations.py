@@ -201,6 +201,39 @@ class Noise(Mutation):
         return derive(seed, self.name, prompt=text, category="robustness.noise")
 
 
+_PRINTABLE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,;:!?-_'\"()[]{}<>/\\@#$%^&*~`|+="
+
+
+@register_mutation
+class RandomChars(Mutation):
+    """Semantics-free character edits. A *baseline* for benchmarking, not a default strategy."""
+
+    name = "random_chars"
+    description = "Random character insertions, deletions, swaps and case flips."
+
+    async def mutate(
+        self, seed: TestCase, rng: random.Random, models: ModelRoles | None = None
+    ) -> TestCase | None:
+        chars = list(seed.input.prompt)
+        if len(chars) < 3:
+            return None
+        for _ in range(max(1, len(chars) // 25)):
+            op = rng.choice(("insert", "delete", "swap", "case"))
+            i = rng.randrange(len(chars) - 1)
+            if op == "insert":
+                chars.insert(i, rng.choice(_PRINTABLE))
+            elif op == "delete" and len(chars) > 3:
+                del chars[i]
+            elif op == "swap":
+                chars[i], chars[i + 1] = chars[i + 1], chars[i]
+            else:
+                chars[i] = chars[i].swapcase()
+        text = "".join(chars)
+        if rng.random() < 0.2:
+            text = text.upper()
+        return derive(seed, self.name, prompt=text, category="robustness.noise")
+
+
 _DISTRACTORS = (
     "By the way, my neighbour just repainted their fence a bright shade of green.",
     "Unrelated, but the 1998 municipal budget allocated 12% to road maintenance.",
