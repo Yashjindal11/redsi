@@ -1,0 +1,27 @@
+name: Feature or research proposal
+description: Propose a new evaluator, generator, suite, adapter or research capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Which failure mode or workflow does this address?
+      description: RedSI's guiding question is "how does this system fail?". Explain how the proposal helps discover, reproduce, measure or prevent failures.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+  - type: textarea
+    id: evaluation
+    attributes:
+      label: How would we know it works?
+      description: e.g. a toy target with a planted fault that the new component detects, or expected false-positive behaviour.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This is for evaluating systems the user owns or is authorised to test.
+          required: true
