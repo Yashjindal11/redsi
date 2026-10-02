@@ -753,6 +753,31 @@ def targets() -> None:
     )
 
 
+@app.command()
+def serve(
+    host: Annotated[
+        str,
+        typer.Option(help="Bind address. Keep 127.0.0.1 unless you add authentication in front."),
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option()] = 8765,
+    config: ConfigOpt = None,
+) -> None:
+    """Start the read-only web dashboard over the run store (needs `pip install 'redsi[web]'`)."""
+    try:
+        import uvicorn
+
+        from redsi.server import create_app
+    except ImportError as exc:
+        raise _fail("the dashboard needs extra dependencies: pip install 'redsi[web]'") from exc
+    store = _load_config(config).store
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        ui.err.print(
+            "[yellow]warning:[/] the dashboard has no authentication; do not expose it publicly."
+        )
+    ui.console.print(f"RedSI dashboard on [bold]http://{host}:{port}[/] (store: {store})")
+    uvicorn.run(create_app(store), host=host, port=port, log_level="warning")
+
+
 @app.command(name="config")
 def config_cmd(
     action: Annotated[str, typer.Argument(help="show | validate")] = "show",
