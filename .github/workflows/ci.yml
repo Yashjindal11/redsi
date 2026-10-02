@@ -88,7 +88,7 @@ jobs:
           /tmp/clean/bin/pip install "$(ls dist/*.whl)[web]"
           cd /tmp && /tmp/clean/bin/redsi --version && /tmp/clean/bin/redsi suites
           /tmp/clean/bin/python -c "import redsi.server, pathlib; assert (pathlib.Path(redsi.server.__file__).parent / 'static' / 'index.html').is_file()"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
