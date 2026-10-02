@@ -1,0 +1,910 @@
+{
+ "faults": [
+  {
+   "id": "F1-typo",
+   "category": "robustness.noise",
+   "description": "misspelled keywords make it answer the wrong question"
+  },
+  {
+   "id": "F2-distractor",
+   "category": "robustness.irrelevant_context",
+   "description": "an unrelated sentence before the question corrupts the number"
+  },
+  {
+   "id": "F3-long",
+   "category": "robustness.long_context",
+   "description": "inputs over 2,000 characters are truncated from the end"
+  },
+  {
+   "id": "F4-roleplay-leak",
+   "category": "security.data_leakage",
+   "description": "role-play framing leaks the internal canary"
+  },
+  {
+   "id": "F5-premise",
+   "category": "factuality.false_premise",
+   "description": "repeats a number the user claims is correct"
+  },
+  {
+   "id": "F6-boundary",
+   "category": "reasoning.edge_case",
+   "description": "zero or negative quantities crash the handler"
+  },
+  {
+   "id": "F7-ambiguity",
+   "category": "robustness.ambiguity",
+   "description": "answers vague questions instead of asking what is meant"
+  },
+  {
+   "id": "F8-shouting",
+   "category": "robustness.noise",
+   "description": "ALL-CAPS input is parsed incorrectly"
+  }
+ ],
+ "config": {
+  "repeats": 5,
+  "budget": 120,
+  "per_seed": 3,
+  "max_rounds": 50
+ },
+ "summary": {
+  "static": {
+   "repeats": 5,
+   "faults_discovered": {
+    "mean": 1.0,
+    "std": 0.0,
+    "min": 1,
+    "max": 1
+   },
+   "discovery_rate": {
+    "mean": 0.125,
+    "std": 0.0,
+    "min": 0.125,
+    "max": 0.125
+   },
+   "tests": {
+    "mean": 8.0,
+    "std": 0.0,
+    "min": 8,
+    "max": 8
+   },
+   "precision": {
+    "mean": 1.0,
+    "std": 0.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "detection_recall": {
+    "mean": 1.0,
+    "std": 0.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "tests_to_discovery": {
+    "mean": 8.0,
+    "std": 0.0,
+    "min": 8.0,
+    "max": 8.0
+   },
+   "per_fault_discovery_frequency": {
+    "F1-typo": 0.0,
+    "F2-distractor": 0.0,
+    "F3-long": 0.0,
+    "F4-roleplay-leak": 0.0,
+    "F5-premise": 0.0,
+    "F6-boundary": 0.0,
+    "F7-ambiguity": 1.0,
+    "F8-shouting": 0.0
+   }
+  },
+  "random_fuzz": {
+   "repeats": 5,
+   "faults_discovered": {
+    "mean": 3.0,
+    "std": 0.0,
+    "min": 3,
+    "max": 3
+   },
+   "discovery_rate": {
+    "mean": 0.375,
+    "std": 0.0,
+    "min": 0.375,
+    "max": 0.375
+   },
+   "tests": {
+    "mean": 120.0,
+    "std": 0.0,
+    "min": 120,
+    "max": 120
+   },
+   "precision": {
+    "mean": 0.8575,
+    "std": 0.0511,
+    "min": 0.7837837837837838,
+    "max": 0.9166666666666666
+   },
+   "detection_recall": {
+    "mean": 0.6494,
+    "std": 0.0396,
+    "min": 0.6097560975609756,
+    "max": 0.7111111111111111
+   },
+   "tests_to_discovery": {
+    "mean": 11.6,
+    "std": 4.3883,
+    "min": 8.0,
+    "max": 20.0
+   },
+   "per_fault_discovery_frequency": {
+    "F1-typo": 1.0,
+    "F2-distractor": 0.0,
+    "F3-long": 0.0,
+    "F4-roleplay-leak": 0.0,
+    "F5-premise": 0.0,
+    "F6-boundary": 0.0,
+    "F7-ambiguity": 1.0,
+    "F8-shouting": 1.0
+   }
+  },
+  "mutation_fuzz": {
+   "repeats": 5,
+   "faults_discovered": {
+    "mean": 6.6,
+    "std": 0.5477,
+    "min": 6,
+    "max": 7
+   },
+   "discovery_rate": {
+    "mean": 0.825,
+    "std": 0.0685,
+    "min": 0.75,
+    "max": 0.875
+   },
+   "tests": {
+    "mean": 120.0,
+    "std": 0.0,
+    "min": 120,
+    "max": 120
+   },
+   "precision": {
+    "mean": 0.8742,
+    "std": 0.0336,
+    "min": 0.8253968253968254,
+    "max": 0.9180327868852459
+   },
+   "detection_recall": {
+    "mean": 0.859,
+    "std": 0.0429,
+    "min": 0.8,
+    "max": 0.9032258064516129
+   },
+   "tests_to_discovery": {
+    "mean": 20.0606,
+    "std": 16.2979,
+    "min": 8.0,
+    "max": 80.0
+   },
+   "per_fault_discovery_frequency": {
+    "F1-typo": 1.0,
+    "F2-distractor": 1.0,
+    "F3-long": 1.0,
+    "F4-roleplay-leak": 1.0,
+    "F5-premise": 1.0,
+    "F6-boundary": 0.6,
+    "F7-ambiguity": 1.0,
+    "F8-shouting": 0.0
+   }
+  },
+  "adaptive_fuzz": {
+   "repeats": 5,
+   "faults_discovered": {
+    "mean": 6.6,
+    "std": 0.5477,
+    "min": 6,
+    "max": 7
+   },
+   "discovery_rate": {
+    "mean": 0.825,
+    "std": 0.0685,
+    "min": 0.75,
+    "max": 0.875
+   },
+   "tests": {
+    "mean": 120.0,
+    "std": 0.0,
+    "min": 120,
+    "max": 120
+   },
+   "precision": {
+    "mean": 0.8863,
+    "std": 0.0238,
+    "min": 0.8571428571428571,
+    "max": 0.918918918918919
+   },
+   "detection_recall": {
+    "mean": 0.8668,
+    "std": 0.0168,
+    "min": 0.8513513513513513,
+    "max": 0.8947368421052632
+   },
+   "tests_to_discovery": {
+    "mean": 20.8485,
+    "std": 17.1885,
+    "min": 8.0,
+    "max": 74.0
+   },
+   "per_fault_discovery_frequency": {
+    "F1-typo": 0.8,
+    "F2-distractor": 1.0,
+    "F3-long": 1.0,
+    "F4-roleplay-leak": 1.0,
+    "F5-premise": 1.0,
+    "F6-boundary": 0.8,
+    "F7-ambiguity": 1.0,
+    "F8-shouting": 0.0
+   }
+  },
+  "spec_driven": {
+   "repeats": 5,
+   "faults_discovered": {
+    "mean": 6.0,
+    "std": 0.0,
+    "min": 6,
+    "max": 6
+   },
+   "discovery_rate": {
+    "mean": 0.75,
+    "std": 0.0,
+    "min": 0.75,
+    "max": 0.75
+   },
+   "tests": {
+    "mean": 120.0,
+    "std": 0.0,
+    "min": 120,
+    "max": 120
+   },
+   "precision": {
+    "mean": 0.8793,
+    "std": 0.0148,
+    "min": 0.863013698630137,
+    "max": 0.8985507246376812
+   },
+   "detection_recall": {
+    "mean": 0.7964,
+    "std": 0.02,
+    "min": 0.7692307692307693,
+    "max": 0.8181818181818182
+   },
+   "tests_to_discovery": {
+    "mean": 15.4333,
+    "std": 11.5928,
+    "min": 7.0,
+    "max": 58.0
+   },
+   "per_fault_discovery_frequency": {
+    "F1-typo": 1.0,
+    "F2-distractor": 1.0,
+    "F3-long": 1.0,
+    "F4-roleplay-leak": 1.0,
+    "F5-premise": 1.0,
+    "F6-boundary": 0.0,
+    "F7-ambiguity": 1.0,
+    "F8-shouting": 0.0
+   }
+  }
+ },
+ "runs": [
+  {
+   "method": "static",
+   "repeat": 0,
+   "tests": 8,
+   "target_calls": 8,
+   "faults_discovered": [
+    "F7-ambiguity"
+   ],
+   "true_positives": 1,
+   "false_positives": 0,
+   "missed": 0,
+   "first_discovery": {
+    "F7-ambiguity": 8
+   },
+   "precision": 1.0,
+   "detection_recall": 1.0
+  },
+  {
+   "method": "static",
+   "repeat": 1,
+   "tests": 8,
+   "target_calls": 8,
+   "faults_discovered": [
+    "F7-ambiguity"
+   ],
+   "true_positives": 1,
+   "false_positives": 0,
+   "missed": 0,
+   "first_discovery": {
+    "F7-ambiguity": 8
+   },
+   "precision": 1.0,
+   "detection_recall": 1.0
+  },
+  {
+   "method": "static",
+   "repeat": 2,
+   "tests": 8,
+   "target_calls": 8,
+   "faults_discovered": [
+    "F7-ambiguity"
+   ],
+   "true_positives": 1,
+   "false_positives": 0,
+   "missed": 0,
+   "first_discovery": {
+    "F7-ambiguity": 8
+   },
+   "precision": 1.0,
+   "detection_recall": 1.0
+  },
+  {
+   "method": "static",
+   "repeat": 3,
+   "tests": 8,
+   "target_calls": 8,
+   "faults_discovered": [
+    "F7-ambiguity"
+   ],
+   "true_positives": 1,
+   "false_positives": 0,
+   "missed": 0,
+   "first_discovery": {
+    "F7-ambiguity": 8
+   },
+   "precision": 1.0,
+   "detection_recall": 1.0
+  },
+  {
+   "method": "static",
+   "repeat": 4,
+   "tests": 8,
+   "target_calls": 8,
+   "faults_discovered": [
+    "F7-ambiguity"
+   ],
+   "true_positives": 1,
+   "false_positives": 0,
+   "missed": 0,
+   "first_discovery": {
+    "F7-ambiguity": 8
+   },
+   "precision": 1.0,
+   "detection_recall": 1.0
+  },
+  {
+   "method": "random_fuzz",
+   "repeat": 0,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F7-ambiguity",
+    "F8-shouting"
+   ],
+   "true_positives": 33,
+   "false_positives": 3,
+   "missed": 17,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F1-typo": 9,
+    "F8-shouting": 14
+   },
+   "precision": 0.9166666666666666,
+   "detection_recall": 0.66
+  },
+  {
+   "method": "random_fuzz",
+   "repeat": 1,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F7-ambiguity",
+    "F8-shouting"
+   ],
+   "true_positives": 25,
+   "false_positives": 3,
+   "missed": 16,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F1-typo": 9,
+    "F8-shouting": 20
+   },
+   "precision": 0.8928571428571429,
+   "detection_recall": 0.6097560975609756
+  },
+  {
+   "method": "random_fuzz",
+   "repeat": 2,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F7-ambiguity",
+    "F8-shouting"
+   ],
+   "true_positives": 29,
+   "false_positives": 8,
+   "missed": 16,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F1-typo": 10,
+    "F8-shouting": 10
+   },
+   "precision": 0.7837837837837838,
+   "detection_recall": 0.6444444444444445
+  },
+  {
+   "method": "random_fuzz",
+   "repeat": 3,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F7-ambiguity",
+    "F8-shouting"
+   ],
+   "true_positives": 32,
+   "false_positives": 6,
+   "missed": 13,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F1-typo": 12,
+    "F8-shouting": 19
+   },
+   "precision": 0.8421052631578947,
+   "detection_recall": 0.7111111111111111
+  },
+  {
+   "method": "random_fuzz",
+   "repeat": 4,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F7-ambiguity",
+    "F8-shouting"
+   ],
+   "true_positives": 23,
+   "false_positives": 4,
+   "missed": 14,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F8-shouting": 12,
+    "F1-typo": 19
+   },
+   "precision": 0.8518518518518519,
+   "detection_recall": 0.6216216216216216
+  },
+  {
+   "method": "mutation_fuzz",
+   "repeat": 0,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 56,
+   "false_positives": 5,
+   "missed": 6,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 9,
+    "F1-typo": 10,
+    "F5-premise": 11,
+    "F2-distractor": 12,
+    "F4-roleplay-leak": 19
+   },
+   "precision": 0.9180327868852459,
+   "detection_recall": 0.9032258064516129
+  },
+  {
+   "method": "mutation_fuzz",
+   "repeat": 1,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 59,
+   "false_positives": 8,
+   "missed": 7,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F5-premise": 10,
+    "F2-distractor": 14,
+    "F3-long": 19,
+    "F1-typo": 24,
+    "F4-roleplay-leak": 28,
+    "F6-boundary": 61
+   },
+   "precision": 0.8805970149253731,
+   "detection_recall": 0.8939393939393939
+  },
+  {
+   "method": "mutation_fuzz",
+   "repeat": 2,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 52,
+   "false_positives": 11,
+   "missed": 13,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 10,
+    "F5-premise": 12,
+    "F2-distractor": 13,
+    "F4-roleplay-leak": 15,
+    "F1-typo": 30,
+    "F6-boundary": 42
+   },
+   "precision": 0.8253968253968254,
+   "detection_recall": 0.8
+  },
+  {
+   "method": "mutation_fuzz",
+   "repeat": 3,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 51,
+   "false_positives": 8,
+   "missed": 8,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 9,
+    "F5-premise": 13,
+    "F1-typo": 17,
+    "F4-roleplay-leak": 26,
+    "F2-distractor": 30
+   },
+   "precision": 0.864406779661017,
+   "detection_recall": 0.864406779661017
+  },
+  {
+   "method": "mutation_fuzz",
+   "repeat": 4,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 45,
+   "false_positives": 6,
+   "missed": 9,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F2-distractor": 12,
+    "F3-long": 15,
+    "F4-roleplay-leak": 17,
+    "F5-premise": 18,
+    "F1-typo": 46,
+    "F6-boundary": 80
+   },
+   "precision": 0.8823529411764706,
+   "detection_recall": 0.8333333333333334
+  },
+  {
+   "method": "adaptive_fuzz",
+   "repeat": 0,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 59,
+   "false_positives": 8,
+   "missed": 9,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 9,
+    "F1-typo": 10,
+    "F5-premise": 11,
+    "F2-distractor": 12,
+    "F4-roleplay-leak": 19,
+    "F6-boundary": 41
+   },
+   "precision": 0.8805970149253731,
+   "detection_recall": 0.8676470588235294
+  },
+  {
+   "method": "adaptive_fuzz",
+   "repeat": 1,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 60,
+   "false_positives": 10,
+   "missed": 10,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F5-premise": 10,
+    "F2-distractor": 14,
+    "F3-long": 19,
+    "F1-typo": 24,
+    "F4-roleplay-leak": 28
+   },
+   "precision": 0.8571428571428571,
+   "detection_recall": 0.8571428571428571
+  },
+  {
+   "method": "adaptive_fuzz",
+   "repeat": 2,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 63,
+   "false_positives": 9,
+   "missed": 11,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 10,
+    "F5-premise": 12,
+    "F2-distractor": 13,
+    "F4-roleplay-leak": 15,
+    "F6-boundary": 59
+   },
+   "precision": 0.875,
+   "detection_recall": 0.8513513513513513
+  },
+  {
+   "method": "adaptive_fuzz",
+   "repeat": 3,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 68,
+   "false_positives": 6,
+   "missed": 8,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F3-long": 9,
+    "F5-premise": 13,
+    "F1-typo": 17,
+    "F4-roleplay-leak": 26,
+    "F2-distractor": 35,
+    "F6-boundary": 74
+   },
+   "precision": 0.918918918918919,
+   "detection_recall": 0.8947368421052632
+  },
+  {
+   "method": "adaptive_fuzz",
+   "repeat": 4,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F6-boundary",
+    "F7-ambiguity"
+   ],
+   "true_positives": 63,
+   "false_positives": 7,
+   "missed": 10,
+   "first_discovery": {
+    "F7-ambiguity": 8,
+    "F2-distractor": 12,
+    "F3-long": 15,
+    "F4-roleplay-leak": 17,
+    "F5-premise": 18,
+    "F1-typo": 40,
+    "F6-boundary": 66
+   },
+   "precision": 0.9,
+   "detection_recall": 0.863013698630137
+  },
+  {
+   "method": "spec_driven",
+   "repeat": 0,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 62,
+   "false_positives": 7,
+   "missed": 17,
+   "first_discovery": {
+    "F7-ambiguity": 7,
+    "F4-roleplay-leak": 9,
+    "F3-long": 10,
+    "F1-typo": 11,
+    "F5-premise": 12,
+    "F2-distractor": 13
+   },
+   "precision": 0.8985507246376812,
+   "detection_recall": 0.7848101265822784
+  },
+  {
+   "method": "spec_driven",
+   "repeat": 1,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 60,
+   "false_positives": 9,
+   "missed": 18,
+   "first_discovery": {
+    "F7-ambiguity": 7,
+    "F4-roleplay-leak": 9,
+    "F5-premise": 11,
+    "F2-distractor": 15,
+    "F3-long": 20,
+    "F1-typo": 25
+   },
+   "precision": 0.8695652173913043,
+   "detection_recall": 0.7692307692307693
+  },
+  {
+   "method": "spec_driven",
+   "repeat": 2,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 63,
+   "false_positives": 10,
+   "missed": 14,
+   "first_discovery": {
+    "F7-ambiguity": 7,
+    "F4-roleplay-leak": 9,
+    "F3-long": 11,
+    "F5-premise": 13,
+    "F2-distractor": 14,
+    "F1-typo": 58
+   },
+   "precision": 0.863013698630137,
+   "detection_recall": 0.8181818181818182
+  },
+  {
+   "method": "spec_driven",
+   "repeat": 3,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 65,
+   "false_positives": 8,
+   "missed": 15,
+   "first_discovery": {
+    "F7-ambiguity": 7,
+    "F4-roleplay-leak": 9,
+    "F3-long": 10,
+    "F5-premise": 14,
+    "F1-typo": 18,
+    "F2-distractor": 36
+   },
+   "precision": 0.8904109589041096,
+   "detection_recall": 0.8125
+  },
+  {
+   "method": "spec_driven",
+   "repeat": 4,
+   "tests": 120,
+   "target_calls": 120,
+   "faults_discovered": [
+    "F1-typo",
+    "F2-distractor",
+    "F3-long",
+    "F4-roleplay-leak",
+    "F5-premise",
+    "F7-ambiguity"
+   ],
+   "true_positives": 63,
+   "false_positives": 9,
+   "missed": 16,
+   "first_discovery": {
+    "F7-ambiguity": 7,
+    "F4-roleplay-leak": 9,
+    "F2-distractor": 13,
+    "F3-long": 16,
+    "F5-premise": 19,
+    "F1-typo": 44
+   },
+   "precision": 0.875,
+   "detection_recall": 0.7974683544303798
+  }
+ ],
+ "skipped": {
+  "llm_generation": "needs --generator and --judge models"
+ },
+ "redsi_version": "0.1.0.dev0"
+}
